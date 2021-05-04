@@ -22,8 +22,12 @@ type Node struct {
 	Left *Node
 	Right *Node
 	Parent *Node
-	Val int
+	Val Comparable
 	Color NodeColor
+}
+
+type Comparable interface {
+	LessThan(other interface{}) bool
 }
 
 func NewRedBlackTree() *RedBlackTree  {
@@ -90,7 +94,7 @@ func (t *RedBlackTree)Insert(z *Node)  {
 	x := t.Root
 	for x != t.Nil {
 		p = x
-		if z.Val <= x.Val {
+		if z.Val.LessThan(x.Val) {
 			x = x.Left
 		}else {
 			x = x.Right
@@ -99,7 +103,7 @@ func (t *RedBlackTree)Insert(z *Node)  {
 	z.Parent = p
 	if p == t.Nil {
 		t.Root = z
-	}else if z.Val <= p.Val {
+	}else if z.Val.LessThan(p.Val) {
 		p.Left = z
 	}else {
 		p.Right = z
@@ -224,6 +228,7 @@ func (t *RedBlackTree)DeleteFixup(x *Node)  {
 				left.Color = BLACK
 				x.Parent.Color = RED
 				t.RightRotation(x.Parent)
+				left = x.Parent.Left
 			}
 			if left.Left.Color == BLACK && left.Right.Color == BLACK {
 				left.Color = RED
@@ -241,11 +246,11 @@ func (t *RedBlackTree)DeleteFixup(x *Node)  {
 			t.RightRotation(x.Parent)
 			x = t.Root
 		}
-		t.Nil.Parent = nil
 	}
 	x.Color = BLACK
 }
 
+//replace替换orgin,
 func (t *RedBlackTree)Transplant(origin *Node, replace *Node)  {
 	if origin.Parent == t.Nil {
 		t.Root = replace
@@ -258,6 +263,8 @@ func (t *RedBlackTree)Transplant(origin *Node, replace *Node)  {
 
 }
 
+
+//指定子树最大值节点
 func (t *RedBlackTree)TreeMinimum(n *Node) *Node {
 	for n.Left != t.Nil {
 		n = n.Left
@@ -272,6 +279,9 @@ func (t *RedBlackTree)TreeMaximum(n *Node) *Node {
 	return n
 }
 
+
+//用于按val大小遍历
+//指点节点后继
 func (t *RedBlackTree)Successor(x *Node) *Node {
 	if x.Right != t.Nil {
 		return t.TreeMinimum(x.Right)
@@ -284,6 +294,7 @@ func (t *RedBlackTree)Successor(x *Node) *Node {
 	return succ
 }
 
+//指定节点前驱
 func (t *RedBlackTree)Predecessor(x *Node) *Node {
 	if x.Left != t.Nil {
 		return t.TreeMaximum(x.Left)

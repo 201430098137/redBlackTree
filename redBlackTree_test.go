@@ -23,7 +23,18 @@ func TestRedBlackTree(t *testing.T) {
 	// [4,1,6,3]
 	// 100
 	// 1
-	fmt.Println(containsNearbyAlmostDuplicate([]int{5,3,13,1,20,9,24,7,11,6,12,17,15,18,4,26,2,1,16,21,22,23,25,24,26,27,28,29,30,31,32,33,34,35,36,37}, 10, 0))
+
+	fmt.Println(containsNearbyAlmostDuplicate([]int{1,2,3,4,5,6,8,7,11,9,10,13,14,15,16,26,17,18,19,21,22,23,25,24,38,27,28,29,30,31,32,33,34,35,36,37}, 10, 0))
+}
+
+type Val int
+
+func (item Val) LessThan(other interface{}) bool {
+	o := int(other.(Val))
+	if int(item) <= o {
+		return true
+	}
+	return false
 }
 
 //https://leetcode-cn.com/problems/contains-duplicate-iii/
@@ -34,7 +45,7 @@ func containsNearbyAlmostDuplicate(nums []int, k int, t int) bool {
 	z := 0
 	for i:=0; i<len(nums); i++ {
 		node := new(Node)
-		node.Val = nums[i]
+		node.Val = Val(nums[i])
 		tree.Insert(node)
 		if nodes[z] != nil {
 			tree.Delete(nodes[z])
@@ -42,14 +53,14 @@ func containsNearbyAlmostDuplicate(nums []int, k int, t int) bool {
 		pred := tree.Predecessor(node)
 		if pred != tree.Nil {
 
-			if t >= int(math.Abs(float64(pred.Val-node.Val))) {
+			if t >= int(math.Abs(float64(int(pred.Val.(Val))-int(node.Val.(Val))))) {
 				return true
 			}
 		}
 
 		succ := tree.Successor(node)
 		if succ != tree.Nil {
-			if t >= int(math.Abs(float64(succ.Val-node.Val))) {
+			if t >= int(math.Abs(float64(int(succ.Val.(Val))-int(node.Val.(Val))))) {
 				return true
 			}
 		}
