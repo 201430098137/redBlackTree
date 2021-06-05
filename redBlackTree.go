@@ -92,6 +92,7 @@ func (t *RedBlackTree)RightRotation(x *Node)  {
 func (t *RedBlackTree)Insert(z *Node)  {
 	p := t.Nil
 	x := t.Root
+	//确认父节点位置
 	for x != t.Nil {
 		p = x
 		if z.Val.LessThan(x.Val) {
@@ -100,7 +101,10 @@ func (t *RedBlackTree)Insert(z *Node)  {
 			x = x.Right
 		}
 	}
+
+
 	z.Parent = p
+	//确认z的位置
 	if p == t.Nil {
 		t.Root = z
 	}else if z.Val.LessThan(p.Val) {
@@ -114,27 +118,34 @@ func (t *RedBlackTree)Insert(z *Node)  {
 	t.InsertFixup(z)
 }
 
+//插入调整
 func (t *RedBlackTree)InsertFixup(z *Node)  {
 	for z.Parent.Color == RED {
+		//父节点和z都是红色
 		p := z.Parent
 		grandParent := z.Parent.Parent
 		if p == grandParent.Left {
+			//左边
 			uncle := grandParent.Right
 			if uncle.Color == RED {
+				//uncle是红色情况
 				p.Color = BLACK
 				uncle.Color = BLACK
 				grandParent.Color = RED
 				z = grandParent
 				continue
 			}else if z == p.Right {
+				//z从右节点变左节点
 				z = p
 				t.LeftRotation(z)
 			}
+			//uncle是黑色 z是左节点 祖父是黑色 父亲是红色
 			z.Parent.Color = BLACK
 			z.Parent.Parent.Color = RED
 			t.RightRotation(z.Parent.Parent)
 
 		}else {
+			//右边和左边成镜像操作
 			uncle := grandParent.Left
 			if uncle.Color == RED {
 				p.Color = BLACK
@@ -151,6 +162,7 @@ func (t *RedBlackTree)InsertFixup(z *Node)  {
 			t.LeftRotation(z.Parent.Parent)
 		}
 	}
+	//一直到根节点才停止，将根节点置黑
 	t.Root.Color = BLACK
 }
 
@@ -159,6 +171,7 @@ func (t *RedBlackTree)Delete(z *Node)  {
 	deleteColorNode := z
 	deleteColorNode_original_color := deleteColorNode.Color
 	var x *Node
+	//只有一边有子节点，用另一边的节点替换父节点
 	if z.Left == t.Nil {
 		x  = z.Right
 		t.Transplant(z, z.Right)
@@ -166,16 +179,22 @@ func (t *RedBlackTree)Delete(z *Node)  {
 		x = z.Left
 		t.Transplant(z, z.Left)
 	}else {
+		//z左右都有子节点
+		//取右子树最小节点
 		deleteColorNode = t.TreeMinimum(z.Right)
 		deleteColorNode_original_color = deleteColorNode.Color
 		x = deleteColorNode.Right
 		if deleteColorNode.Parent == z {
+			//最小节点是z的孩子, 最小节点右子树关系不变
 			x.Parent = deleteColorNode
 		}else {
+			//最小节点右节点替换最小节点
 			t.Transplant(deleteColorNode, deleteColorNode.Right)
+			//更改最小节点右子树关系
 			deleteColorNode.Right = z.Right
 			deleteColorNode.Right.Parent = deleteColorNode
 		}
+		//最小节点替换z
 		t.Transplant(z, deleteColorNode)
 		deleteColorNode.Left = z.Left
 		deleteColorNode.Left.Parent = deleteColorNode
@@ -183,20 +202,22 @@ func (t *RedBlackTree)Delete(z *Node)  {
 	}
 
 	if deleteColorNode_original_color == BLACK {
-		if x.Parent.Right == t.Nil && x.Parent.Left == t.Nil {
-			t.DeleteFixup(x)
-			return
-		}
+		//被删除的黑色
 		t.DeleteFixup(x)
 	}
 }
 
+//删除调整
 func (t *RedBlackTree)DeleteFixup(x *Node)  {
 	for x != t.Root && x.Color == BLACK {
+		//x不是根节点，x是黑色
+		//在进入循环时，x绝对不是根节点，但在调整过程中，会上升到根节点（情况2）
 		if x == x.Parent.Left {
 			right := x.Parent.Right
 			if right.Color == RED {
 				//case 1 put right.Color = Black
+				//兄弟节点是红色
+				//推论 父亲节点一定是黑色，兄弟节点的左节点是黑色， 旋转之后，x的兄弟节点是黑色
 				right.Color = BLACK
 				x.Parent.Color = RED
 				t.LeftRotation(x.Parent)
@@ -205,11 +226,14 @@ func (t *RedBlackTree)DeleteFixup(x *Node)  {
 			if right.Left.Color == BLACK && right.Right.Color == BLACK {
 				//case 2 fixup right tree black color reduce 1
 				// count of black in x.Parent reduce 1, x.Parent fixup
+				//兄弟的孩子节点都是黑色，将一层黑色上升到父节点
+				//right节点不是Nil,因为x有两层黑色，right的子树里一定还有黑色节点
 				right.Color = RED
 				x = x.Parent
 				continue
 			}else if right.Right.Color == BLACK {
 				//case 3 put right.right.color = red
+				//兄弟右节点是黑色，左节点是红色
 				right.Left.Color = BLACK
 				right.Color = RED
 				t.RightRotation(right)
